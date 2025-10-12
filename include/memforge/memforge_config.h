@@ -6,26 +6,26 @@
 #include <stdint.h>
 
 // Configuration constants
-#define MFALLOC_PAGE_SIZE 4096
-#define MFALLOC_MMAP_THRESHOLD (128 * 1024)  // 128KB
-#define MFALLOC_MIN_ALLOC_SIZE 16
-#define MFALLOC_ALIGNMENT 8
-#define MFALLOC_MAGIC_NUMBER 0xDEADBEEF
+#define FMALLOC_PAGE_SIZE 4096
+#define FMALLOC_MMAP_THRESHOLD (128 * 1024)  // 128KB
+#define FMALLOC_MIN_ALLOC_SIZE 16
+#define FMALLOC_ALIGNMENT 8
+#define FMALLOC_MAGIC_NUMBER 0xDEADBEEF
 
 // Alignment macros
-#define MFALLOC_ALIGN(size) (((size) + (MFALLOC_ALIGNMENT-1)) & ~(MFALLOC_ALIGNMENT-1))
-#define MFALLOC_IS_ALIGNED(ptr) (((uintptr_t)(ptr) & (MFALLOC_ALIGNMENT-1)) == 0)
+#define FMALLOC_ALIGN(size) (((size) + (FMALLOC_ALIGNMENT-1)) & ~(FMALLOC_ALIGNMENT-1))
+#define FMALLOC_IS_ALIGNED(ptr) (((uintptr_t)(ptr) & (FMALLOC_ALIGNMENT-1)) == 0)
 
 // Size classes for small allocations
-#define MFALLOC_SIZE_CLASSES {16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192}
-#define MFALLOC_SIZE_CLASS_COUNT 10
+#define FMALLOC_SIZE_CLASSES {16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192}
+#define FMALLOC_SIZE_CLASS_COUNT 10
 
 // Allocation strategies
 typedef enum {
-    MFALLOC_STRATEGY_FIRST_FIT = 0,
-    MFALLOC_STRATEGY_BEST_FIT,
-    MFALLOC_STRATEGY_HYBRID
-} mfalloc_strategy_t;
+    FMALLOC_STRATEGY_FIRST_FIT = 0,
+    FMALLOC_STRATEGY_BEST_FIT,
+    FMALLOC_STRATEGY_HYBRID
+} fmalloc_strategy_t;
 
 // Block header structure
 typedef struct block_header {
@@ -35,7 +35,7 @@ typedef struct block_header {
     struct block_header* next;
     struct block_header* prev;
     uint32_t magic;
-    #ifdef MFALLOC_DEBUG
+    #ifdef FMALLOC_DEBUG
     const char* file;
     int line;
     #endif
@@ -52,7 +52,7 @@ typedef struct heap_segment {
 } heap_segment_t;
 
 // Statistics structure
-typedef struct memalloc_stats {
+typedef struct fmalloc_stats {
     size_t total_mapped;
     size_t total_allocated;
     size_t total_freed;
@@ -62,6 +62,6 @@ typedef struct memalloc_stats {
     size_t free_count;
     size_t mmap_count;
     size_t sbrk_count;
-} mfalloc_stats_t;
+} fmalloc_stats_t;
 
 #endif 

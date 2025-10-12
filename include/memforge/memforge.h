@@ -1,6 +1,7 @@
 #ifndef MEMFORGE_H
 #define MEMFORGE_H
 
+#include <stdio.h>
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -10,40 +11,40 @@ extern "C"
 #endif
 
     // Core allocation function
-    void *falloc(size_t size); // Forge the allocation
-    void free(void *ptr);
-    void *calloc(size_t n, size_t size);
-    void *realloc(void *ptr, size_t);
+    void *fmalloc(size_t size); // Forge the allocation
+    void fmfree(void *ptr);
+    void *fmcalloc(size_t n, size_t size);
+    void *fmrealloc(void *ptr, size_t);
 
     // Advanced alignment functions
-    void *memalign(size_t alignment, size_t size);
-    int posix_memalign(void **memptr, size_t alignment, size_t size);
-    void *aligned_alloc(size_t alignment, size_t size);
+    void *fmalign(size_t alignment, size_t size);
+    int posix_fmalign(void **memptr, size_t alignment, size_t size);
+    void *fm_aligned_alloc(size_t alignment, size_t size);
 
     // Utility functions
-    size_t malloc_usable_size(void *ptr);
-    void malloc_stats(void);
-    int malloc_trim(size_t pad);
-    void malloc_info(int options, FILE *stream);
+    size_t fmalloc_usable_size(void *ptr);
+    void fmalloc_stats(void);
+    int fmalloc_trim(size_t pad);
+    void fmalloc_info(int options, FILE *stream);
 
     // Debug and control functions
-    void malloc_debug(int level);
-    void malloc_verify(void);
-    int malloc_set_state(void *state);
-    void *malloc_get_state(void);
+    void fmalloc_debug(int level);
+    void fmalloc_verify(void);
+    int fmalloc_set_state(void *state);
+    void *fmalloc_get_state(void);
 
     // Configuration
-    typedef struct memalloc_config
+    typedef struct fmalloc_config
     {
         size_t mmap_threshold;
         size_t page_size;
         int strategy;
         int debug_level;
         bool thread_safe;
-    } mfalloc_config_t;
+    } fmalloc_config_t;
 
-    int memalloc_init(const mfalloc_config_t *config);
-    void memalloc_cleanup(void);
+    int fmalloc_init(const fmalloc_config_t *config);
+    void fmalloc_cleanup(void);
 #ifdef __cplusplus
 }
 #endif

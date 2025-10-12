@@ -1,9 +1,9 @@
-#ifndef MEMALLOC_INTERNAL_H
-#define MEMALLOC_INTERNAL_H
+#ifndef MEMFORGE_INTERNAL_H
+#define MEMFORGE_INTERNAL_H
 
 #include "memforge_config.h"
 
-// Internal functions - not part of public API
+// These are Internal functions that are not part of the public API
 
 // Platform abstraction
 void* system_alloc_sbrk(size_t size);
@@ -34,7 +34,7 @@ size_t size_class_get(size_t size);
 size_t size_class_from_index(size_t index);
 
 // Debug utilities
-#ifdef MEMALLOC_DEBUG
+#ifdef FMALLOC_DEBUG
 void debug_log(const char* format, ...);
 void debug_dump_block(block_header_t* block);
 void debug_dump_heap(void);
@@ -44,4 +44,4 @@ void debug_dump_heap(void);
 #define debug_dump_heap()
 #endif
 
-#endif // MEMALLOC_INTERNAL_H
+#endif 
