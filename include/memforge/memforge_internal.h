@@ -3,6 +3,13 @@
 
 #include "memforge_config.h"
 
+// Global state
+extern bool memforge_initialized;
+extern fmalloc_stats_t memforge_stats;
+// Fututre works!
+// extern memforge_arena_t* memforge_main_arena;
+// extern memforge_config_t memforge_config;
+
 // These are Internal functions that are not part of the public API
 
 // Platform abstraction
