@@ -33,18 +33,19 @@ extern "C"
     int fmalloc_set_state(void *state);
     void *fmalloc_get_state(void);
 
-    // Configuration
-    typedef struct fmalloc_config
+    // Configuration struct
+    typedef struct memforge_config
     {
         size_t mmap_threshold;
         size_t page_size;
         int strategy;
         int debug_level;
         bool thread_safe;
-    } fmalloc_config_t;
+    } memforge_config_t;
 
-    int fmalloc_init(const fmalloc_config_t *config);
-    void fmalloc_cleanup(void);
+    // Initialization and cleanup declarations
+    int memforge_init(const memforge_config_t *config);
+    void memforge_cleanup(void);
 #ifdef __cplusplus
 }
 #endif

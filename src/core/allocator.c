@@ -1,21 +1,15 @@
-#include "../../include/memforge/memforge_config.h"
-
-// Global allocator state
-// We have to define some states to implement the allocation logic
-
-// Global state
-bool memforge_initialized = false;
-fmalloc_stats_t memforge_stats = {0};
-static heap_segment_t *heap_segments = NULL;
-static block_header_t *free_lists[FMALLOC_SIZE_CLASS_COUNT] = {NULL};
-static bool debug_enabled = false;
+#include "../../include/memforge/memforge_internal.h"
+#include "init.c";
 
 // Core allocation functions
+
+// Forge memory allocation
 void *fmalloc(size_t size)
 {
+    const memforge_config_t config = setup_config();
     if (!memforge_initialized)
     {
-        memforge_init();
+        memforge_init(&config);
     }
 
     // malloc(0) behavior based on glibc doc : If size is 0, then malloc() returns a unique pointer value that can later be successfully passed to free().

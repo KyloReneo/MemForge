@@ -1,14 +1,15 @@
 #ifndef MEMFORGE_INTERNAL_H
 #define MEMFORGE_INTERNAL_H
 
+#include "memforge.h"
 #include "memforge_config.h"
 
-// Global state
+// Global state declarations (they are defined in init.c)
 extern bool memforge_initialized;
-extern fmalloc_stats_t memforge_stats;
+extern memforge_stats_t memforge_stats;
+extern memforge_config_t memforge_config;
 // Fututre works!
 // extern memforge_arena_t* memforge_main_arena;
-// extern memforge_config_t memforge_config;
 
 // These are Internal functions that are not part of the public API
 
@@ -18,6 +19,8 @@ void* system_alloc_mmap(size_t size);
 void system_free_sbrk(void* ptr, size_t size);
 void system_free_mmap(void* ptr, size_t size);
 size_t system_page_size(void);
+int system_init(void);
+void system_cleanup(void);
 
 // Free list management
 void free_list_init(void);
@@ -40,8 +43,12 @@ void heap_verify(void);
 size_t size_class_get(size_t size);
 size_t size_class_from_index(size_t index);
 
+// Environment and configuration
+void apply_environment_tuning(void);
+void setup_default_config(void);
+
 // Debug utilities
-#ifdef FMALLOC_DEBUG
+#ifdef MEMFORGE_DEBUG
 void debug_log(const char* format, ...);
 void debug_dump_block(block_header_t* block);
 void debug_dump_heap(void);
