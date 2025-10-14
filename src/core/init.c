@@ -1,4 +1,3 @@
-// src/core/init.c
 #include "../../include/memforge/memforge.h"
 #include "../../include/memforge/memforge_config.h"
 #include "../core/allocator.c"
