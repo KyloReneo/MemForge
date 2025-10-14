@@ -6,22 +6,22 @@
 
 // Global state definitions
 
-// Initialization flag
+// Tracks whether the memory allocator has been initialized
 bool memforge_initialized = false;
 
-// Statistics
+// Statistics structure to track memory usage patterns
 memforge_stats_t memforge_stats = {0};
 
-// Default config
-const memforge_config_t default_memforge_config = {
-    .mmap_threshold = MEMFORGE_MMAP_THRESHOLD,
-    .page_size = MEMFORGE_PAGE_SIZE,
-    .strategy = MEMFORGE_STRATEGY_HYBRID,
-    .debug_level = 0,
-    .thread_safe = true};
+// Configuration structure with default values
+memforge_config_t default_memforge_config = {
+    .mmap_threshold = MEMFORGE_MMAP_THRESHOLD, // 128KB default
+    .page_size = MEMFORGE_PAGE_SIZE,           // Will be detected from system
+    .strategy = MEMFORGE_STRATEGY_HYBRID,      // Best of both worlds
+    .debug_level = 0,                          // No debug output by default
+    .thread_safe = true};                      // Safe for multi-threaded use -- future work
 
-// future works
-// main arena
+// future workkkkkkkkk
+// Main memory arena - the primary heap for allocations
 
 // Environment variable tuning
 static memforge_config_t custom_environment_tuning(void)
@@ -141,6 +141,9 @@ int memforge_init(const memforge_config_t *config)
     // printf("Memory allocator initialized\n");
     // return 0;
 }
+//====== Automatic initialization ==========> future work
+
+// Next step cleanup!!!!!!!!!
 
 // void memforge_cleanup(void)
 // {
