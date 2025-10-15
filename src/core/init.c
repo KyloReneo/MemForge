@@ -64,7 +64,22 @@ int memforge_init(const memforge_config_t *config)
  */
 int memforge_init_default_config(void)
 {
+// Platform-specific page size detection
+#ifdef _WIN32
+    SYSTEM_INFO system_info;
+    GetSystemInfo(&system_info);
+    memforge_config.page_size = system_info.dwPageSize;
+#else
+    // Linux/Unix/MacOS
     memforge_config.page_size = sysconf(_SC_PAGESIZE);
+#endif
+
+    // Fallback if page size detection fails
+    if (memforge_config.page_size == 0)
+    {
+        memforge_config.page_size = 4096; // Common default page size
+    }
+
     memforge_config.mmap_threshold = MEMFORGE_DEFAULT_MMAP_THRESHOLD;
     memforge_config.strategy = MEMFORGE_STRATEGY_HYBRID;
     memforge_config.thread_safe = MEMFORGE_THREAD_SAFE;

@@ -5,6 +5,21 @@
 #include <stdbool.h>
 
 // ============================================================================
+// PLATFORM DETECTION
+// ============================================================================
+
+#if defined(__linux__)
+#define MEMFORGE_PLATFORM_LINUX 1
+#elif defined(_WIN32)
+#define MEMFORGE_PLATFORM_WINDOWS 1
+#include <windows.h> // Add Windows headers
+#elif defined(__APPLE__)
+#define MEMFORGE_PLATFORM_MACOS 1
+#else
+#error "Unsupported platform"
+#endif
+
+// ============================================================================
 // COMPILE-TIME CONFIGURATION
 // ============================================================================
 
