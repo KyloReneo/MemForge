@@ -10,11 +10,12 @@ extern "C"
 {
 #endif
 
-    // Core allocation function
-    void *fmalloc(size_t size); // Forge the allocation
-    void fmfree(void *ptr);
-    void *fmcalloc(size_t n, size_t size);
-    void *fmrealloc(void *ptr, size_t);
+    // Core functions
+
+    void *memforge_malloc(size_t size);
+    void memforge_free(void *ptr);
+    void *memforge_calloc(size_t n, size_t size);
+    void *memforge_realloc(void *ptr, size_t);
 
     // Advanced alignment functions
     void *fmalign(size_t alignment, size_t size);
