@@ -1,167 +1,157 @@
+#include "../../include/memforge/memforge_internal.h"
 #include "../../include/memforge/memforge.h"
-#include "../../include/memforge/memforge_config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+// ============================================================================
+// GLOBAL STATE DEFINITIONS
+// ============================================================================
 
-// Global state definitions
-
-// Tracks whether the memory allocator has been initialized
+memforge_config_t memforge_config = {0};
+memforge_stats_t memforge_stats = {0};
+memforge_arena_t *memforge_main_arena = NULL;
+memforge_arena_t **memforge_arenas = NULL;
 bool memforge_initialized = false;
 
-// Statistics structure to track memory usage patterns
-memforge_stats_t memforge_stats = {0};
+// Size classes for segregated free lists (powers of two with some spacing)
+size_t memforge_size_classes[MEMFORGE_SIZE_CLASS_COUNT] = {
+    16, 32, 64, 128, 256, 512, 1024, 2048,
+    4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288};
 
-// Configuration structure with default values
-memforge_config_t default_memforge_config = {
-    .mmap_threshold = MEMFORGE_MMAP_THRESHOLD, // 128KB default
-    .page_size = MEMFORGE_PAGE_SIZE,           // Will be detected from system
-    .strategy = MEMFORGE_STRATEGY_HYBRID,      // Best of both worlds
-    .debug_level = 0,                          // No debug output by default
-    .thread_safe = true};                      // Safe for multi-threaded use -- future work
+// ============================================================================
+// INITIALIZATION FUNCTIONS
+// ============================================================================
 
-// future workkkkkkkkk
-// Main memory arena - the primary heap for allocations
-
-// Environment variable tuning
-static memforge_config_t custom_environment_tuning(void)
-{
-    // Custom config
-    memforge_config_t custom_memforge_config = {0};
-
-    char *env = NULL;
-
-    // Mmap threshold
-    env = getenv("MEMFORGE_MMAP_THRESHOLD");
-    // Default : glibc threshold, 128 KB
-    if (env != NULL)
-    {
-        long threshold = atol(env);
-        if (threshold >= 0)
-        {
-            custom_memforge_config.mmap_threshold = (size_t)threshold;
-            debug_log("Enviroment tuning log: MEMFORGE_MMAP_THRESHOLD = %zu", threshold);
-        }
-    }
-
-    // Page size
-    env = getenv("MEMFORGE_PAGE_SIZE");
-    // Default : 4096
-    if (env != NULL)
-    {
-        long page = atol(env);
-        if (page >= 0)
-        {
-            custom_memforge_config.page_size = (size_t)page;
-            debug_log("Enviroment tuning log: MEMFORGE_PAGE_SIZE = %zu", page);
-        }
-    }
-
-    // Strategy
-    env = getenv("MEMFORGE_STRATEGY_HYBRID");
-    // Default : Hybrid
-    if (env != NULL)
-    {
-        long tegy = atol(env);
-        if (tegy >= 0)
-        {
-            custom_memforge_config.strategy = (size_t)tegy;
-            debug_log("Enviroment tuning log: MEMFORGE_STRATEGY_HYBRID = %zu", tegy);
-        }
-    }
-
-    // MEMFORGE_DEBUG
-    env = getenv("MEMFORGE_DEBUG");
-    // Default : 0
-    if (env != NULL)
-    {
-        custom_memforge_config.debug_level = atoi(env);
-        debug_log("Environment tuning log: debug_level = %d", custom_memforge_config.debug_level);
-    }
-
-    env = NULL;
-
-    return custom_memforge_config;
-}
-
-// Configuration setup
-const memforge_config_t setup_config(void)
-{
-
-    // Detecting system page size ----> future work!
-
-    const memforge_config_t custom = custom_environment_tuning();
-
-    // Choosing config
-    if (custom.mmap_threshold != default_memforge_config.mmap_threshold ||
-        custom.page_size != default_memforge_config.page_size ||
-        custom.strategy != default_memforge_config.strategy ||
-        custom.debug_level != default_memforge_config.debug_level)
-    {
-        debug_log("Setup_config log: Custom config is set: %zu", custom);
-
-        return custom;
-    }
-    else
-    {
-        debug_log("Setup_config log: Default config is set: %zu", default_memforge_config);
-        return default_memforge_config;
-    }
-}
-
+/**
+ * Initializes the MemForge allocator with default or provided configuration
+ */
 int memforge_init(const memforge_config_t *config)
 {
-    // Already initialized
     if (memforge_initialized)
     {
-        debug_log("memforge_init log: Already initialized!");
-        return 0;
+        return 0; // Already initialized
     }
 
-    // Set initialize statistics
-    memforge_stats.total_mapped = 0;
-    memforge_stats.total_allocated = 0;
-    memforge_stats.total_freed = 0;
-    memforge_stats.current_usage = 0;
-    memforge_stats.peak_usage = 0;
-    memforge_stats.allocation_count = 0;
-    memforge_stats.free_count = 0;
-    memforge_stats.mmap_count = 0;
-    memforge_stats.sbrk_count = 0;
+    // Initialize default configuration
+    if (memforge_init_default_config() != 0)
+    {
+        return -1;
+    }
 
-    // // Initialize free lists
-    // for (size_t i = 0; i < MEMFORGE_SIZE_CLASS_COUNT; i++)
-    // {
-    //     free_lists[i] = NULL;
-    // }
+    // Override with user configuration if provided
+    if (config != NULL)
+    {
+        memforge_config = *config;
+    }
 
-    // heap_segments = NULL;
-    // memforge_initialized = true;
+    // Initialize arenas for multi-threaded operation
+    if (memforge_init_arenas() != 0)
+    {
+        return -1;
+    }
 
-    // printf("Memory allocator initialized\n");
-    // return 0;
+    // Initialize size classes
+    for (size_t i = 0; i < MEMFORGE_SIZE_CLASS_COUNT; i++)
+    {
+        memforge_size_classes[i] = MEMFORGE_ALIGN(memforge_size_classes[i]);
+    }
+
+    memforge_initialized = true;
+    debug_log("MemForge initialized successfully");
+    return 0;
 }
-//====== Automatic initialization ==========> future work
 
-// Next step cleanup!!!!!!!!!
+/**
+ * Sets up default configuration values
+ */
+int memforge_init_default_config(void)
+{
+    memforge_config.page_size = sysconf(_SC_PAGESIZE);
+    memforge_config.mmap_threshold = MEMFORGE_DEFAULT_MMAP_THRESHOLD;
+    memforge_config.strategy = MEMFORGE_STRATEGY_HYBRID;
+    memforge_config.thread_safe = MEMFORGE_THREAD_SAFE;
+    memforge_config.debug_enabled = DEBUG_LOGGING;
+    memforge_config.arena_count = MEMFORGE_DEFAULT_ARENA_COUNT;
 
-// void memforge_cleanup(void)
-// {
-//     if (!memforge_initialized)
-//     {
-//         return;
-//     }
+    return 0;
+}
 
-//     // Free all heap segments
-//     heap_segment_t *seg = heap_segments;
-//     while (seg != NULL)
-//     {
-//         heap_segment_t *next = seg->next;
-//         system_free_mmap(seg, sizeof(heap_segment_t));
-//         seg = next;
-//     }
-//     heap_segments = NULL;
+/**
+ * Initializes memory arenas for allocation
+ */
+int memforge_init_arenas(void)
+{
+    // Allocate arena array
+    memforge_arenas = system_alloc_mmap(sizeof(memforge_arena_t *) * memforge_config.arena_count);
+    if (memforge_arenas == NULL)
+    {
+        return -1;
+    }
 
-//     memforge_initialized = false;
-//     printf("Memory allocator cleaned up\n");
-// }
+    // Create main arena
+    memforge_main_arena = arena_create();
+    if (memforge_main_arena == NULL)
+    {
+        system_free_mmap(memforge_arenas, sizeof(memforge_arena_t *) * memforge_config.arena_count);
+        return -1;
+    }
+
+    memforge_arenas[0] = memforge_main_arena;
+
+    // Initialize other arenas if thread-safe mode enabled
+    if (memforge_config.thread_safe)
+    {
+        for (size_t i = 1; i < memforge_config.arena_count; i++)
+        {
+            memforge_arenas[i] = arena_create();
+            if (memforge_arenas[i] == NULL)
+            {
+                // Continue with fewer arenas
+                memforge_config.arena_count = i;
+                break;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * Cleans up allocator resources
+ */
+void memforge_cleanup(void)
+{
+    if (!memforge_initialized)
+    {
+        return;
+    }
+
+    // Destroy all arenas
+    for (size_t i = 0; i < memforge_config.arena_count; i++)
+    {
+        if (memforge_arenas[i] != NULL)
+        {
+            arena_destroy(memforge_arenas[i]);
+        }
+    }
+
+    // Free arena array
+    if (memforge_arenas != NULL)
+    {
+        system_free_mmap(memforge_arenas, sizeof(memforge_arena_t *) * memforge_config.arena_count);
+        memforge_arenas = NULL;
+    }
+
+    memforge_main_arena = NULL;
+    memforge_initialized = false;
+
+    debug_log("MemForge cleanup completed");
+}
+
+/**
+ * Resets allocator to initial state (for testing)
+ */
+void memforge_reset(void)
+{
+    memforge_cleanup();
+    memset(&memforge_stats, 0, sizeof(memforge_stats_t));
+    memforge_init(NULL);
+}
