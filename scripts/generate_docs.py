@@ -1,13 +1,11 @@
-#!/usr/bin/env python3
 import os
 import subprocess
 import webbrowser
-import sys
 
 def generate_documentation():
     print("🚀 Generating MemForge Documentation...")
     
-    # Get the project root directory (one level up from scripts folder)
+    # Get the project root directory 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
     
@@ -18,7 +16,7 @@ def generate_documentation():
     os.chdir(project_root)
     print(f"📁 Working directory: {os.getcwd()}")
     
-    # Check if Doxygen is available
+    # Check if Doxygen is available 
     try:
         subprocess.run(["doxygen", "--version"], check=True, capture_output=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -47,7 +45,6 @@ def generate_documentation():
         return False
     
     # Check if index.html was created in the correct location
-    # Based on Doxyfile: OUTPUT_DIRECTORY = docs/doxygen, HTML_OUTPUT = html
     docs_path = os.path.join(project_root, "docs", "html", "index.html")
     
     print(f"🔍 Looking for documentation at: {docs_path}")
@@ -87,9 +84,7 @@ def generate_documentation():
                     print(f"  📄 {item}")
         else:
             print("docs/ directory not found!")
-        
         return False
-    
     return True
 
 if __name__ == "__main__":
