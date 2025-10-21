@@ -7,11 +7,13 @@
 
 memforge_config_t memforge_config = {0};
 memforge_stats_t memforge_stats = {0};
-memforge_arena_t *memforge_main_arena = NULL;
-memforge_arena_t **memforge_arenas = NULL;
-bool memforge_initialized = false;
+memforge_arena_t *memforge_main_arena = NULL; // The primary memory arena for allocations
+memforge_arena_t **memforge_arenas = NULL;    // Array of arenas for multi-threarded operations
+bool memforge_initialized = false;            // Safety flag to prevent double-initialization
 
-// Size classes for segregated free lists (powers of two with some spacing)
+/*
+Size classes for segregated free lists (powers of two with some spacing). Instead of one big free list, we have 16 different lists for different size ranges. This makes allocation faster because we only search in the appropriate size bucket
+*/
 size_t memforge_size_classes[MEMFORGE_SIZE_CLASS_COUNT] = {
     16, 32, 64, 128, 256, 512, 1024, 2048,
     4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288};
@@ -77,7 +79,7 @@ int memforge_init_default_config(void)
     // Fallback if page size detection fails
     if (memforge_config.page_size == 0)
     {
-        memforge_config.page_size = 4096; // Common default page size
+        memforge_config.page_size = 4096; // Common default page size for most linux and unix based kernels
     }
 
     memforge_config.mmap_threshold = MEMFORGE_DEFAULT_MMAP_THRESHOLD;

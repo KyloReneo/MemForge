@@ -9,6 +9,21 @@ BUILD_DIR = build
 TEST_DIR = tests
 BENCHMARK_DIR = benchmarks
 EXAMPLE_DIR = examples
+DOXYFILE = Doxyfile
+DOCS_DIR = docs
+
+# Detect shell and set commands accordingly
+ifdef ComSpec
+    # Windows commands
+    RM = rmdir /s /q
+    MKDIR = mkdir
+    RMDIR = rmdir /s /q
+else
+    # Unix commands
+    RM = rm -rf
+    MKDIR = mkdir -p
+    RMDIR = rm -rf
+endif
 
 # Compiler settings
 # MemForge Build Configuration - OPTIMAL SETTINGS
@@ -44,7 +59,7 @@ PLATFORM_SOURCES = $(wildcard $(SRC_DIR)/platform/*.c)
 SOURCES = $(CORE_SOURCES) $(STRATEGY_SOURCES) $(PLATFORM_SOURCES)
 
 # Targets
-.PHONY: all debug release static shared test examples benchmarks clean install
+.PHONY: all debug release static shared test examples benchmarks clean install doc clean-doc
 
 all: debug
 
@@ -89,4 +104,13 @@ install: release
 	cp $(BUILD_DIR)/release/$(PROJECT).a /usr/local/lib/
 	cp -r $(INCLUDE_DIR)/memalloc /usr/local/include/
 
-.PHONY: all debug release shared static test examples benchmarks clean install
+# Generate documentation
+doc:
+	doxygen $(DOXYFILE)
+
+# Clean documentation
+clean-doc:
+	if exist "$(DOCS_DIR)\html" $(RMDIR) "$(DOCS_DIR)\html"
+	if exist "$(DOCS_DIR)\latex" $(RMDIR) "$(DOCS_DIR)\latex"
+
+.PHONY: all debug release shared static test examples benchmarks clean install doc clean-doc

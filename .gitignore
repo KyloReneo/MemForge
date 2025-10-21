@@ -1,3 +1,7 @@
+# Doxy Files
+docs/html/
+docs/latex/
+
 # IDE
 .vscode/
 
