@@ -6,9 +6,9 @@
  * MemForge memory allocator. It sets up global state, detects system properties,
  * and manages memory arenas for efficient multi-threaded allocation.
  *
- * @author Your Name
- * @date 2024
- * @license MIT
+ * @author KyloReneo
+ * @date 2025
+ * @license GPLv3.0
  */
 
 #include "../../include/memforge/memforge_internal.h"
@@ -73,9 +73,9 @@ bool memforge_initialized = false;
  * @brief Size classes for segregated free lists
  *
  * Implements power-of-two size classes with spacing to optimize allocation speed:
- * - Small sizes (16-2048 bytes): Fine-grained for common allocations
- * - Medium sizes (4K-64K): Balanced for typical objects
- * - Large sizes (128K-512K): Coarse-grained for big allocations
+ * - Small  sizes (16-2048 bytes): Fine-grained for common allocations
+ * - Medium sizes (4K-64K)       : Balanced for typical objects
+ * - Large  sizes (128K-512K)    : Coarse-grained for big allocations
  *
  * Segregated free lists reduce search time by only scanning appropriate size buckets.
  */
